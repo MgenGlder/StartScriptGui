@@ -47,7 +47,6 @@ app.on('activate', () => {
     createWindow();
   }
 });
-console.log('in here...');
 ipcMain.on('pinger', () => {
   shell.exec(path.join(__dirname, '../scripts/waitSomeTime.sh'), () => {
     console.log('finished with the script');
@@ -65,6 +64,37 @@ ipcMain.on('pinger', () => {
   })
   console.log('successfuly pinged');
 });
+
+
+ipcMain.on('getHealthStatus', (event) => {
+  let servicesArray = ['management', 'au-telematics', 'auth', 'health', 'telematics', 'vehicle-enrollment'];
+  // let servicesObject = {
+  //   'management': 1,
+  //   'au-telematics': 1,
+  //   'auth': 1,
+  //   'health': 1,
+  //   'telematics': 1,
+  //   'vehicle-enrollment': 1,
+  // };
+
+  let runningService = [];
+  shell.config.execPath = '/usr/local/bin/node'; //shell.which('node');
+  for (let service of servicesArray) {
+    console.log(service);
+    let exitCode = shell.exec(`~/workspace/fcs/${service}/launch.sh status`).code;
+    if (exitCode === 0 ) {
+      runningService.push(service);
+    }
+  }
+
+  event.sender.send('getHealthStatusResponse', runningService);
+});
+
+
+
+
+
+
 
 ipcMain.on('allRunningServices', (event) => {
   Promise.all([
